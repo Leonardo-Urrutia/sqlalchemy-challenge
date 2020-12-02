@@ -29,10 +29,11 @@ def welcome():
     return (
         f"Available Routes:<br/>"
         f"/api/v1.0/precipitation<br/>"
+        f"/api/v1.0/lastyearprecipitation<br/>"
         f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs"
-        f"/api/v1.0/<start>"
-        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/tobs<br/>"
+        f"/api/v1.0/&#60;start&#62;<br/>"
+        f"/api/v1.0/&#60;start&#62;/&#60;end&#62;"
     )
 
 
@@ -50,7 +51,26 @@ def precipitation():
         prcp_dict["Date"] = date
         prcp_dict["Precipitation"] = prc
         all_prcp.append(prcp_dict)
+    
+    return jsonify(all_prcp)
 
+
+@app.route("/api/v1.0/lastyearprecipitation")
+def lastYearPrecipitation():
+    session = Session(engine)
+    results = session.query(Measurement.date, Measurement.prcp).all()
+
+    session.close()
+
+    all_prcp = []
+
+    for date, prc in results:
+        prcp_dict = {}
+        if date >= '2016-08-23' and date <= '2017-08-23':
+            prcp_dict["Date"] = date
+            prcp_dict["Precipitation"] = prc
+            all_prcp.append(prcp_dict)
+        
     return jsonify(all_prcp)
 
 @app.route("/api/v1.0/stations")
