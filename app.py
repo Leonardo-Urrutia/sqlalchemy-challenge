@@ -31,7 +31,10 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/lastyearprecipitation<br/>"
         f"/api/v1.0/stations<br/>"
+        f"<br/>"
+        f"Temperature Observations from most active station: USC00519281:<br/>"
         f"/api/v1.0/tobs<br/>"
+        f"<br/>"
         f"/api/v1.0/&#60;start&#62;<br/>"
         f"/api/v1.0/&#60;start&#62;/&#60;end&#62;"
     )
@@ -82,6 +85,27 @@ def stations():
     all_stations = list(np.ravel(results))
 
     return jsonify(all_stations)
+
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    session = Session(engine)
+    results = session.query(Measurement.station, Measurement.date, Measurement.tobs).\
+        filter(Measurement.station == "USC00519281").all()
+
+    session.close()
+
+    all_tobs = []
+
+    for sta, date, tob in results:
+        tobs_dict = {}
+        if date >= '2016-08-23' and date <= '2017-08-23':
+            tobs_dict["Date"] = date
+            tobs_dict["Temp. Observations"] = tob
+            all_tobs.append(tobs_dict)
+        
+    return jsonify(all_tobs)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
