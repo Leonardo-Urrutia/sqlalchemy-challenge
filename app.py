@@ -35,6 +35,8 @@ def welcome():
         f"Temperature Observations from most active station: USC00519281:<br/>"
         f"/api/v1.0/tobs<br/>"
         f"<br/>"
+        f"Format for dates = <strong>&quot;YYYY-MM-DD&quot;</strong><br/>"
+        f"Date ranges from <strong>2010-01-01</strong> through <strong>2017-08-23</strong>:<br/>"
         f"/api/v1.0/&#60;start&#62;<br/>"
         f"/api/v1.0/&#60;start&#62;/&#60;end&#62;"
     )
@@ -105,6 +107,34 @@ def tobs():
             all_tobs.append(tobs_dict)
         
     return jsonify(all_tobs)
+
+
+@app.route("/api/v1.0/<start>")
+def startdate(start):
+    session = Session(engine)
+    results = session.query(Measurement.station, Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+        group_by(Measurement.station).\
+        filter(Measurement.station == "USC00519281", Measurement.date > start).all()
+
+    session.close()
+    start_tobs = list(np.ravel(results))
+    return jsonify(start_tobs)    
+
+
+
+
+@app.route("/api/v1.0/<start>/<end>")
+def startenddate(start, end):
+    session = Session(engine)
+    results = session.query(Measurement.station, Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+        group_by(Measurement.station).\
+        filter(Measurement.station == "USC00519281", Measurement.date >= start, Measurement.date <= end).all()
+
+    session.close()
+    start_end_tobs = list(np.ravel(results))
+    return jsonify(start_end_tobs)    
+
+
 
 
 if __name__ == '__main__':
